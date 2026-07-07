@@ -2,369 +2,427 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>电商数据分析看板 - 7月（截止6日）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>电商运营看板 · 7月</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f0eb; color: #3D3028; padding-bottom: 40px; }
-.header { background: linear-gradient(135deg, #3D3028 0%, #6B5B4E 100%); color: #F5F0EB; padding: 18px 20px; text-align: center; }
-.header h1 { font-size: 18px; font-weight: 600; }
-.header .subtitle { font-size: 12px; opacity: 0.8; margin-top: 3px; }
-.container { max-width: 100%; margin: 0 auto; padding: 12px; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F7F5F2;color:#3D3028;padding-bottom:48px;-webkit-font-smoothing:antialiased}
+.header{background:#3D3028;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:17px;font-weight:600;color:#F5F0EB;letter-spacing:0.5px}
+.header .date{font-size:11px;color:#D0B090}
+.nav{display:flex;background:white;border-bottom:1px solid #EBE5DE;position:sticky;top:0;z-index:10}
+.nav-item{flex:1;padding:13px 0;text-align:center;font-size:13px;font-weight:500;color:#8B7D72;border-bottom:2.5px solid transparent;cursor:pointer;transition:all 0.2s}
+.nav-item.active{color:#3D3028;border-bottom-color:#3D3028;background:#FAF8F5}
+.panel{display:none;padding:14px}
+.panel.show{display:block}
 
-.nav-bar { background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; }
-.nav-tab { flex: 1; padding: 12px 8px; font-size: 12px; font-weight: 500; color: #8B7D72; text-align: center; cursor: pointer; border-bottom: 3px solid transparent; user-select: none; }
-.nav-tab.active { color: #3D3028; border-bottom-color: #3D3028; background: #F5F0EB; }
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
+/* Section */
+.sec{margin-bottom:16px}
+.sec-title{font-size:15px;font-weight:600;color:#3D3028;margin-bottom:2px}
+.sec-sub{font-size:11px;color:#B0A090;margin-bottom:10px}
 
-.section-title { font-size: 14px; font-weight: 600; color: #3D3028; margin: 14px 0 10px; padding-left: 8px; border-left: 3px solid #D0B090; }
-.card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 12px; overflow: hidden; }
-.card-header { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; font-size: 13px; font-weight: 600; color: #3D3028; background: #FAF8F5; }
-.card-body { padding: 10px 14px; }
+/* Card */
+.card{background:white;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:12px;overflow:hidden}
+.card-h{padding:10px 14px;border-bottom:1px solid #F2EEE8;font-size:13px;font-weight:600;color:#3D3028;display:flex;align-items:center;gap:8px}
+.card-h .tag{font-size:10px;background:#F5F0EB;color:#8B7D72;padding:2px 8px;border-radius:4px;font-weight:400}
+.card-b{padding:12px 14px}
 
-/* KPI Row */
-.kpi-row { display: flex; gap: 8px; margin-bottom: 8px; }
-.kpi-card { flex: 1; background: #F5F0EB; border-radius: 8px; padding: 10px; text-align: center; }
-.kpi-card .num { font-size: 20px; font-weight: 700; color: #3D3028; }
-.kpi-card .label { font-size: 11px; color: #8B7D72; margin-top: 2px; }
-.kpi-card.green .num { color: #52c41a; }
-.kpi-card.orange .num { color: #D0B090; }
-.kpi-card.danger .num { color: #e86452; }
+/* KPI bubbles */
+.kpi-strip{display:flex;gap:8px;margin-bottom:10px}
+.kpi-b{flex:1;background:#FAF8F5;border-radius:10px;padding:10px 8px;text-align:center}
+.kpi-b .v{font-size:20px;font-weight:700;color:#3D3028;line-height:1.2}
+.kpi-b .l{font-size:10px;color:#8B7D72;margin-top:2px}
+.kpi-b .sub{font-size:9px;color:#C0B0A0;margin-top:1px}
+.kpi-b.good .v{color:#52c41a}
+.kpi-b.warn .v{color:#D0B090}
+.kpi-b.bad .v{color:#e86452}
+.kpi-b.sm .v{font-size:16px}
 
-/* Platform comparison table */
-.platform-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
-.platform-table th { background: #F5F0EB; padding: 7px 5px; text-align: center; font-weight: 600; color: #3D3028; border: 1px solid #E0D0C0; font-size: 11px; }
-.platform-table td { padding: 6px 4px; text-align: center; border: 1px solid #E8DDD0; }
-.platform-table td.left { text-align: left; padding-left: 8px; font-weight: 500; }
-.platform-table tr:nth-child(even) { background: #FAF8F5; }
-.platform-table .high { color: #52c41a; font-weight: 600; }
-.platform-table .mid { color: #D0B090; font-weight: 600; }
-.platform-table .low { color: #e86452; font-weight: 600; }
-.platform-table .dim { color: #A09080; }
+/* Platform KPI matrix */
+.pfm{display:flex;flex-direction:column;gap:0}
+.pfm-h{display:flex;font-size:10px;color:#8B7D72;padding:5px 0;border-bottom:1px solid #F2EEE8;font-weight:500}
+.pfm-h>span:first-child{width:52px;padding-left:0}
+.pfm-h>span{flex:1;text-align:center}
+.pfm-r{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #F8F5F0;font-size:12px}
+.pfm-r:last-child{border-bottom:none}
+.pfm-r .label{width:52px;font-size:11px;color:#3D3028;font-weight:500}
+.pfm-r .val{flex:1;text-align:center;font-weight:500}
+.pfm-r .val.goal{color:#B0A090;font-size:11px}
+.pfm-r .val.cur{color:#3D3028;font-size:12px}
+.pfm-r .bar-wrap{flex:1;display:flex;align-items:center;gap:6px}
+.pfm-r .bar-track{flex:1;height:5px;background:#F0EBE5;border-radius:3px;overflow:hidden}
+.pfm-r .bar-fill{height:100%;border-radius:3px;transition:width 0.3s}
+.bar-green{background:#52c41a}
+.bar-gold{background:#D0B090}
+.bar-red{background:#e86452}
+.bar-dark{background:#3D3028}
+.pfm-r .pct{font-size:10px;color:#8B7D72;width:38px;text-align:right}
+.pfm-r .status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
+.dot-green{background:#52c41a}
+.dot-gold{background:#D0B090}
+.dot-red{background:#e86452}
 
-/* Progress bar */
-.progress-wrap { height: 5px; background: #E8DDD0; border-radius: 3px; overflow: hidden; margin: 3px 0; }
-.progress-fill { height: 100%; border-radius: 3px; }
-.progress-fill.green { background: #52c41a; }
-.progress-fill.orange { background: #D0B090; }
-.progress-fill.red { background: #e86452; }
+/* Progress row */
+.prog-row{display:flex;align-items:center;gap:8px;margin:5px 0}
+.prog-row .lbl{font-size:11px;color:#3D3028;width:70px;text-align:right;font-weight:500;flex-shrink:0}
+.prog-row .trk{flex:1;height:20px;background:#F0EBE5;border-radius:6px;overflow:hidden;position:relative}
+.prog-row .fl{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:10px;color:white;font-weight:500}
+.fl-gold{background:linear-gradient(90deg,#D0B090,#C0A080)}
+.fl-brown{background:linear-gradient(90deg,#8B7D72,#6B5B4E)}
+.fl-dark{background:#3D3028}
+.prog-row .info{font-size:10px;color:#8B7D72;flex-shrink:0;width:70px;text-align:right}
 
-/* Category bar */
-.cat-row { display: flex; align-items: center; margin: 6px 0; }
-.cat-label { width: 70px; font-size: 11px; color: #3D3028; font-weight: 500; text-align: right; padding-right: 8px; flex-shrink: 0; }
-.cat-track { flex: 1; height: 22px; background: #F0EBE5; border-radius: 4px; overflow: hidden; position: relative; }
-.cat-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 6px; font-size: 10px; color: white; font-weight: 500; }
-.cat-fill.brown { background: #8B7D72; }
-.cat-fill.gold { background: #D0B090; }
-.cat-fill.dark { background: #3D3028; }
-.cat-info { font-size: 10px; color: #8B7D72; margin-left: 8px; white-space: nowrap; flex-shrink: 0; }
+/* Funnel visual */
+.fun-item{display:flex;align-items:center;gap:8px;margin:4px 0}
+.fun-item .l{font-size:11px;color:#3D3028;width:60px;text-align:right;font-weight:500;flex-shrink:0}
+.fun-item .b{flex:1;height:26px;border-radius:4px;display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:600;position:relative}
+.fun-item .b .n{flex:1}
+.fun-item .b .r{font-size:10px;font-weight:400;opacity:0.7}
+.fun-item .b.s1{background:#3D3028;color:white}
+.fun-item .b.s2{background:#6B5B4E;color:white}
+.fun-item .b.s3{background:#D0B090;color:#3D3028}
+.fun-item .b.s4{background:#E0D0C0;color:#3D3028}
+.fun-item .b.s5{background:#F0EBE5;color:#3D3028}
+.fun-item .rate{font-size:10px;color:#8B7D72;width:45px;text-align:right;flex-shrink:0}
 
-/* Funnel */
-.funnel-row { display: flex; align-items: center; margin: 5px 0; }
-.funnel-label { width: 72px; font-size: 11px; color: #3D3028; font-weight: 500; text-align: right; padding-right: 8px; flex-shrink: 0; }
-.funnel-track { flex: 1; height: 24px; background: #F0EBE5; border-radius: 4px; overflow: hidden; }
-.funnel-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; color: white; font-weight: 600; }
-.funnel-fill.s1 { background: #3D3028; }
-.funnel-fill.s2 { background: #6B5B4E; }
-.funnel-fill.s3 { background: #D0B090; }
-.funnel-fill.s4 { background: #E0D0C0; color: #3D3028; }
-.funnel-fill.s5 { background: #F0EBE5; color: #3D3028; }
-.funnel-pct { font-size: 10px; color: #8B7D72; margin-left: 6px; width: 55px; text-align: right; flex-shrink: 0; }
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{background:#FAF8F5;padding:7px 5px;text-align:center;font-weight:600;color:#3D3028;border-bottom:2px solid #EBE5DE;font-size:10px}
+.tbl td{padding:7px 4px;text-align:center;border-bottom:1px solid #F2EEE8}
+.tbl td.l{text-align:left;padding-left:6px;font-weight:500}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .g{color:#52c41a;font-weight:600}
+.tbl .o{color:#D0B090;font-weight:600}
+.tbl .r{color:#e86452;font-weight:600}
 
-/* Section subtitle */
-.section-sub { font-size: 11px; color: #A09080; margin: -6px 0 8px; padding-left: 11px; }
-
-/* Badge */
-.badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 500; }
-.badge.green { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
-.badge.orange { background: #fff7e6; color: #D0B090; border: 1px solid #ffd591; }
-.badge.brown { background: #F5F0EB; color: #3D3028; border: 1px solid #D0B090; }
+/* Summary bar */
+.sum{background:#F5F0EB;border-radius:8px;padding:10px 12px;margin-top:6px}
+.sum-r{display:flex;justify-content:space-between;align-items:center;padding:3px 0}
+.sum-r .l{font-size:11px;color:#8B7D72}
+.sum-r .v{font-size:13px;font-weight:600;color:#3D3028}
+.sum-r .v.g{color:#52c41a}
 </style>
 </head>
 <body>
 
+<!-- ===== HEADER ===== -->
 <div class="header">
-  <h1>📊 电商数据分析看板</h1>
-  <div class="subtitle">2026年7月 · 截止7月6日</div>
+  <div>
+    <h1>📊 电商运营看板</h1>
+    <div class="date">2026年7月 · 截止7月6日</div>
+  </div>
+  <span style="font-size:10px;color:#D0B090;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:4px">已更新实际数据</span>
 </div>
 
-<div class="nav-bar">
-  <div class="nav-tab active" onclick="switchTab('tab1',this)">📈 平台业绩</div>
-  <div class="nav-tab" onclick="switchTab('tab2',this)">📞 项目与转化</div>
+<!-- ===== NAV ===== -->
+<div class="nav">
+  <div class="nav-item active" onclick="switchTab('p1',this)">📈 平台目标</div>
+  <div class="nav-item" onclick="switchTab('p2',this)">🔄 转化分析</div>
 </div>
 
-<div class="container">
+<!-- ================================================================ -->
+<!-- TAB 1: 平台目标 -->
+<!-- ================================================================ -->
+<div class="panel show" id="p1">
 
-<!-- ============================================================ -->
-<!-- TAB 1: 平台业绩 -->
-<!-- ============================================================ -->
-<div class="tab-panel active" id="tab1">
-
-  <div class="section-title">关键指标总览 · 各平台目标达成</div>
-  <div class="section-sub">目标 | 当前 | 进度</div>
+  <!-- === 整体快照 === -->
+  <div class="sec">
+    <div class="sec-title">整体快照</div>
+    <div class="sec-sub">截止7月6日 · 已完成6/31天 ≈ 19.4%</div>
+    <div class="card">
+      <div class="card-b">
+        <div class="kpi-strip">
+          <div class="kpi-b"><div class="v">¥36.99</div><div class="l">总业绩(万)</div><div class="sub">进度19.5%</div></div>
+          <div class="kpi-b"><div class="v">127</div><div class="l">初诊人数</div><div class="sub">进度19.2%</div></div>
+          <div class="kpi-b good"><div class="v">79%</div><div class="l">成交率</div><div class="sub">目标80%</div></div>
+        </div>
+        <div class="kpi-strip">
+          <div class="kpi-b sm"><div class="v">¥3,699</div><div class="l">客单价</div><div class="sub">目标¥3,500</div></div>
+          <div class="kpi-b sm good"><div class="v">3.5x</div><div class="l">投产比</div><div class="sub">投入10.5万</div></div>
+          <div class="kpi-b sm"><div class="v">100</div><div class="l">成交单数</div><div class="sub">含复诊13笔</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- === 大众点评 === -->
-  <div class="card">
-    <div class="card-header">📍 大众点评 · 预算40万</div>
-    <div class="card-body">
-      <table class="platform-table">
-        <tr><th style="width:54px">指标</th><th>目标</th><th>当前</th><th>进度</th></tr>
-        <tr>
-          <td class="left">业绩</td>
-          <td>150万</td>
-          <td class="high">¥311,533</td>
-          <td><span class="badge orange">20.8%</span><div class="progress-wrap"><div class="progress-fill orange" style="width:20.8%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">初诊</td>
-          <td>550</td>
-          <td>108</td>
-          <td><span class="badge orange">19.6%</span><div class="progress-wrap"><div class="progress-fill orange" style="width:19.6%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">成交率</td>
-          <td>80%</td>
-          <td class="high">82%</td>
-          <td><span class="badge green">达标↑</span><div class="progress-wrap"><div class="progress-fill green" style="width:100%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">客单价</td>
-          <td>¥3,409</td>
-          <td class="mid">¥3,314</td>
-          <td><span class="badge orange">97.2%</span><div class="progress-wrap"><div class="progress-fill green" style="width:97%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">投产比</td>
-          <td>3.5x</td>
-          <td class="high">3.8x</td>
-          <td><span class="badge green">达标↑</span><div class="progress-wrap"><div class="progress-fill green" style="width:100%"></div></div></td>
-        </tr>
-      </table>
+  <div class="sec">
+    <div class="sec-title">📍 大众点评</div>
+    <div class="sec-sub">预算40万 · 目标业绩150万 · 目标初诊550</div>
+    <div class="card">
+      <div class="card-b">
+        <!-- Row: 业绩 -->
+        <div class="prog-row">
+          <div class="lbl">业绩</div>
+          <div class="trk"><div class="fl fl-gold" style="width:20.8%">¥311,533</div></div>
+          <div class="info">目标150万</div>
+        </div>
+        <!-- Progress rows for other KPIs -->
+        <div class="pfm-h">
+          <span style="width:52px"></span><span>目标</span><span>当前</span><span>进度</span><span style="width:38px"></span>
+        </div>
+        <div class="pfm-r">
+          <span class="label">初诊</span>
+          <span class="val goal">550</span>
+          <span class="val cur">108</span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-gold" style="width:19.6%"></div></div><span class="pct">19.6%</span></div>
+        </div>
+        <div class="pfm-r">
+          <span class="label">成交率</span>
+          <span class="val goal">80%</span>
+          <span class="val cur g">82% <span class="status-dot dot-green"></span></span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-green" style="width:100%"></div></div><span class="pct" style="color:#52c41a">达标✓</span></div>
+        </div>
+        <div class="pfm-r">
+          <span class="label">客单价</span>
+          <span class="val goal">¥3,409</span>
+          <span class="val cur">¥3,314</span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-gold" style="width:97%"></div></div><span class="pct">97%</span></div>
+        </div>
+        <div class="pfm-r">
+          <span class="label">投产比</span>
+          <span class="val goal">3.5x</span>
+          <span class="val cur g">3.8x <span class="status-dot dot-green"></span></span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-green" style="width:100%"></div></div><span class="pct" style="color:#52c41a">达标✓</span></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- === 抖音电商 === -->
-  <div class="card">
-    <div class="card-header">📍 抖音电商 · 预算15万</div>
-    <div class="card-body">
-      <table class="platform-table">
-        <tr><th style="width:54px">指标</th><th>目标</th><th>当前</th><th>进度</th></tr>
-        <tr>
-          <td class="left">业绩</td>
-          <td>30万</td>
-          <td class="mid">¥54,401</td>
-          <td><span class="badge orange">18.1%</span><div class="progress-wrap"><div class="progress-fill orange" style="width:18.1%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">初诊</td>
-          <td>80</td>
-          <td>16</td>
-          <td><span class="badge orange">20.0%</span><div class="progress-wrap"><div class="progress-fill orange" style="width:20%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">成交率</td>
-          <td>80%</td>
-          <td class="low">63%</td>
-          <td><span class="badge" style="background:#fff1f0;color:#e86452;border-color:#ffa39e">低于目标</span><div class="progress-wrap"><div class="progress-fill red" style="width:79%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">客单价</td>
-          <td>¥4,688</td>
-          <td class="mid">¥4,533</td>
-          <td><span class="badge orange">96.7%</span><div class="progress-wrap"><div class="progress-fill green" style="width:97%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">投产比</td>
-          <td>—</td>
-          <td class="mid">2.5x</td>
-          <td><span class="dim">无明确目标</span></td>
-        </tr>
-      </table>
+  <div class="sec">
+    <div class="sec-title">📍 抖音电商</div>
+    <div class="sec-sub">预算15万 · 目标业绩30万 · 目标初诊80</div>
+    <div class="card">
+      <div class="card-b">
+        <div class="prog-row">
+          <div class="lbl">业绩</div>
+          <div class="trk"><div class="fl fl-brown" style="width:18.1%">¥54,401</div></div>
+          <div class="info">目标30万</div>
+        </div>
+        <div class="pfm-h">
+          <span style="width:52px"></span><span>目标</span><span>当前</span><span>进度</span><span style="width:38px"></span>
+        </div>
+        <div class="pfm-r">
+          <span class="label">初诊</span>
+          <span class="val goal">80</span>
+          <span class="val cur">16</span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-gold" style="width:20%"></div></div><span class="pct">20%</span></div>
+        </div>
+        <div class="pfm-r">
+          <span class="label">成交率</span>
+          <span class="val goal">80%</span>
+          <span class="val cur r">63% <span class="status-dot dot-red"></span></span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-red" style="width:79%"></div></div><span class="pct" style="color:#e86452">落后</span></div>
+        </div>
+        <div class="pfm-r">
+          <span class="label">客单价</span>
+          <span class="val goal">¥4,688</span>
+          <span class="val cur">¥4,533</span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-gold" style="width:97%"></div></div><span class="pct">97%</span></div>
+        </div>
+        <div class="pfm-r">
+          <span class="label">投产比</span>
+          <span class="val goal">—</span>
+          <span class="val cur">2.5x</span>
+          <div class="bar-wrap"><div class="bar-track"></div></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- === 高德 === -->
-  <div class="card">
-    <div class="card-header">📍 高德 · 预算1.5万</div>
-    <div class="card-body">
-      <table class="platform-table">
-        <tr><th style="width:54px">指标</th><th>目标</th><th>当前</th><th>进度</th></tr>
-        <tr>
-          <td class="left">业绩</td>
-          <td>10万</td>
-          <td class="low">¥3,917</td>
-          <td><span class="badge" style="background:#fff1f0;color:#e86452;border-color:#ffa39e">3.9%</span><div class="progress-wrap"><div class="progress-fill red" style="width:3.9%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">初诊</td>
-          <td>30</td>
-          <td class="low">3</td>
-          <td><span class="badge" style="background:#fff1f0;color:#e86452;border-color:#ffa39e">10.0%</span><div class="progress-wrap"><div class="progress-fill red" style="width:10%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">成交率</td>
-          <td>80%</td>
-          <td class="low">33%</td>
-          <td><span class="badge" style="background:#fff1f0;color:#e86452;border-color:#ffa39e">低于目标</span><div class="progress-wrap"><div class="progress-fill red" style="width:41%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">客单价</td>
-          <td>¥6,250</td>
-          <td class="low">¥1,959</td>
-          <td><span class="badge" style="background:#fff1f0;color:#e86452;border-color:#ffa39e">31.3%</span><div class="progress-wrap"><div class="progress-fill red" style="width:31%"></div></div></td>
-        </tr>
-        <tr>
-          <td class="left">投产比</td>
-          <td>—</td>
-          <td class="mid">2.3x</td>
-          <td><span class="dim">无明确目标</span></td>
-        </tr>
-      </table>
-    </div>
-  </div>
-
-  <!-- === 整体汇总 === -->
-  <div class="card">
-    <div class="card-header">📊 三平台汇总</div>
-    <div class="card-body">
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="num">¥369,851</div><div class="label">总业绩</div><div class="sub" style="font-size:10px;color:#A09080">目标190万 · 19.5%</div></div>
-        <div class="kpi-card"><div class="num">127</div><div class="label">总初诊</div><div class="sub" style="font-size:10px;color:#A09080">目标660 · 19.2%</div></div>
-        <div class="kpi-card green"><div class="num">79%</div><div class="label">成交率</div><div class="sub" style="font-size:10px;color:#A09080">初诊→成交</div></div>
-      </div>
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="num">¥3,699</div><div class="label">客单价</div><div class="sub" style="font-size:10px;color:#A09080">目标¥3,500</div></div>
-        <div class="kpi-card green"><div class="num">3.5x</div><div class="label">投产比</div><div class="sub" style="font-size:10px;color:#A09080">总投入¥105,234</div></div>
-        <div class="kpi-card"><div class="num">100</div><div class="label">成交量</div><div class="sub" style="font-size:10px;color:#A09080">含复诊13笔</div></div>
+  <div class="sec">
+    <div class="sec-title">📍 高德</div>
+    <div class="sec-sub">预算1.5万 · 目标业绩10万 · 目标初诊30</div>
+    <div class="card">
+      <div class="card-b">
+        <div class="prog-row">
+          <div class="lbl">业绩</div>
+          <div class="trk"><div class="fl fl-dark" style="width:3.9%">¥3,917</div></div>
+          <div class="info">目标10万</div>
+        </div>
+        <div class="pfm-h">
+          <span style="width:52px"></span><span>目标</span><span>当前</span><span>进度</span><span style="width:38px"></span>
+        </div>
+        <div class="pfm-r">
+          <span class="label">初诊</span>
+          <span class="val goal">30</span>
+          <span class="val cur r">3 <span class="status-dot dot-red"></span></span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-red" style="width:10%"></div></div><span class="pct" style="color:#e86452">10%</span></div>
+        </div>
+        <div class="pfm-r">
+          <span class="label">成交率</span>
+          <span class="val goal">80%</span>
+          <span class="val cur r">33% <span class="status-dot dot-red"></span></span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-red" style="width:41%"></div></div><span class="pct" style="color:#e86452">落后</span></div>
+        </div>
+        <div class="pfm-r">
+          <span class="label">客单价</span>
+          <span class="val goal">¥6,250</span>
+          <span class="val cur r">¥1,959</span>
+          <div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-red" style="width:31%"></div></div><span class="pct" style="color:#e86452">31%</span></div>
+        </div>
+        <div class="pfm-r">
+          <span class="label">投产比</span>
+          <span class="val goal">—</span>
+          <span class="val cur">2.3x</span>
+          <div class="bar-wrap"><div class="bar-track"></div></div>
+        </div>
       </div>
     </div>
   </div>
 
-</div>
-
-<!-- ============================================================ -->
-<!-- TAB 2: 项目与转化 -->
-<!-- ============================================================ -->
-<div class="tab-panel" id="tab2">
-
-  <div class="section-title">项目类别业绩分布</div>
-  <div class="section-sub">占当前总业绩比例</div>
-  <div class="card">
-    <div class="card-body">
-      <div class="cat-row">
-        <div class="cat-label">注射微整</div>
-        <div class="cat-track"><div class="cat-fill gold" style="width:55.6%">¥173,364</div></div>
-        <div class="cat-info">55.6% · 初诊44 · 成交率80%</div>
+  <!-- === 7月目标对比 === -->
+  <div class="sec">
+    <div class="sec-title">📊 7月目标一览</div>
+    <div class="card">
+      <div class="card-b">
+        <table class="tbl">
+          <tr><th>平台</th><th>预算(万)</th><th>留联目标</th><th>初诊目标</th><th>业绩目标(万)</th></tr>
+          <tr><td class="l">大众点评</td><td>40</td><td>960</td><td>550</td><td>150</td></tr>
+          <tr><td class="l">抖音电商</td><td>15</td><td>160</td><td>80</td><td>30</td></tr>
+          <tr><td class="l">高德</td><td>1.5</td><td>48</td><td>30</td><td>10</td></tr>
+          <tr style="font-weight:600;background:#FAF8F5"><td class="l">合计</td><td>56.5</td><td>1,168</td><td>660</td><td>190</td></tr>
+        </table>
       </div>
-      <div class="cat-row">
-        <div class="cat-label">美容皮肤</div>
-        <div class="cat-track"><div class="cat-fill brown" style="width:35.5%">¥110,461</div></div>
-        <div class="cat-info">35.5% · 初诊56 · 成交率88%</div>
-      </div>
-      <div class="cat-row">
-        <div class="cat-label">整形外科</div>
-        <div class="cat-track"><div class="cat-fill dark" style="width:8.9%">¥27,708</div></div>
-        <div class="cat-info">8.9% · 初诊8 · 成交率63%</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-title">转化漏斗（各平台汇总）</div>
-  <div class="section-sub">对话 → 有效 → 留联 → 初诊 → 成交</div>
-  <div class="card">
-    <div class="card-body">
-      <div class="funnel-row">
-        <div class="funnel-label">对话咨询</div>
-        <div class="funnel-track"><div class="funnel-fill s1" style="width:100%">303</div></div>
-        <div class="funnel-pct">—</div>
-      </div>
-      <div class="funnel-row">
-        <div class="funnel-label">有效沟通</div>
-        <div class="funnel-track"><div class="funnel-fill s2" style="width:52%">158</div></div>
-        <div class="funnel-pct">↓ 52%</div>
-      </div>
-      <div class="funnel-row">
-        <div class="funnel-label">留联成功</div>
-        <div class="funnel-track"><div class="funnel-fill s3" style="width:45%">137</div></div>
-        <div class="funnel-pct">↓ 87%</div>
-      </div>
-      <div class="funnel-row">
-        <div class="funnel-label">到店初诊</div>
-        <div class="funnel-track"><div class="funnel-fill s4" style="width:42%">127</div></div>
-        <div class="funnel-pct">↓ 93%</div>
-      </div>
-      <div class="funnel-row">
-        <div class="funnel-label">成交付款</div>
-        <div class="funnel-track"><div class="funnel-fill s5" style="width:35%">106</div></div>
-        <div class="funnel-pct">↓ 83%</div>
-      </div>
-      <div style="font-size:10px;color:#A09080;margin-top:8px;text-align:center">
-        对话→有效52% · 有效→留联87% · 留联→初诊93% · 初诊→成交83%
-      </div>
-    </div>
-  </div>
-
-  <div class="section-title">各平台转化对比</div>
-  <div class="card">
-    <div class="card-body">
-      <table class="platform-table">
-        <tr><th>平台</th><th>对话</th><th>有效</th><th>留联</th><th>初诊</th><th>成交</th><th>对话→初诊</th><th>初诊→成交</th></tr>
-        <tr>
-          <td class="left">大众点评</td>
-          <td>274</td><td>141</td><td>128</td><td>108</td><td>89</td>
-          <td><span class="badge orange">39%</span></td>
-          <td><span class="badge green">82%</span></td>
-        </tr>
-        <tr>
-          <td class="left">抖音电商</td>
-          <td>9</td><td>9</td><td>9</td><td>16</td><td>10</td>
-          <td><span class="badge brown">178%*</span></td>
-          <td><span class="badge orange">63%</span></td>
-        </tr>
-        <tr>
-          <td class="left">高德</td>
-          <td>20</td><td>8</td><td>0</td><td>3</td><td>1</td>
-          <td><span class="badge" style="background:#fff1f0;color:#e86452;border-color:#ffa39e">15%</span></td>
-          <td><span class="badge" style="background:#fff1f0;color:#e86452;border-color:#ffa39e">33%</span></td>
-        </tr>
-        <tr style="font-weight:600;background:#FAF8F5">
-          <td class="left">合计</td>
-          <td>303</td><td>158</td><td>137</td><td>127</td><td>100</td>
-          <td><span class="badge orange">42%</span></td>
-          <td><span class="badge green">79%</span></td>
-        </tr>
-      </table>
-      <div style="font-size:10px;color:#A09080;margin-top:4px">*抖音初诊>对话，含多平台咨询交叉</div>
-    </div>
-  </div>
-
-  <div class="section-title">咨询师排名</div>
-  <div class="card">
-    <div class="card-body">
-      <table class="platform-table">
-        <tr><th>#</th><th>咨询师</th><th>初诊</th><th>成交</th><th>成交额</th><th>客单价</th><th>成交率</th></tr>
-        <tr><td>1</td><td class="left">高迪</td><td>18</td><td>17</td><td class="high">¥74,139</td><td>¥4,119</td><td><span class="badge green">94.4%</span></td></tr>
-        <tr><td>2</td><td class="left">耿文昊</td><td>22</td><td>18</td><td>¥64,048</td><td>¥2,911</td><td><span class="badge green">81.8%</span></td></tr>
-        <tr><td>3</td><td class="left">侯文丽</td><td>27</td><td>21</td><td>¥49,882</td><td>¥1,847</td><td><span class="badge blue">77.8%</span></td></tr>
-        <tr><td>4</td><td class="left">郭庆慈</td><td>18</td><td>15</td><td>¥52,284</td><td>¥2,905</td><td><span class="badge green">83.3%</span></td></tr>
-        <tr><td>5</td><td class="left">王烁铖</td><td>7</td><td>4</td><td>¥31,406</td><td>¥4,487</td><td><span class="badge orange">57.1%</span></td></tr>
-      </table>
     </div>
   </div>
 
 </div>
+
+<!-- ================================================================ -->
+<!-- TAB 2: 转化分析 -->
+<!-- ================================================================ -->
+<div class="panel" id="p2">
+
+  <!-- === 项目业绩 === -->
+  <div class="sec">
+    <div class="sec-title">项目类别业绩分布</div>
+    <div class="sec-sub">大众板块表现</div>
+    <div class="card">
+      <div class="card-b">
+        <div class="prog-row">
+          <div class="lbl">注射微整</div>
+          <div class="trk"><div class="fl fl-gold" style="width:55.6%">¥173,364</div></div>
+          <div class="info">55.6%</div>
+        </div>
+        <div class="prog-row">
+          <div class="lbl">美容皮肤</div>
+          <div class="trk"><div class="fl fl-brown" style="width:35.5%">¥110,461</div></div>
+          <div class="info">35.5%</div>
+        </div>
+        <div class="prog-row">
+          <div class="lbl">整形外科</div>
+          <div class="trk"><div class="fl fl-dark" style="width:8.9%">¥27,708</div></div>
+          <div class="info">8.9%</div>
+        </div>
+        <div class="sum">
+          <div class="sum-r"><span class="l">注射微整</span><span class="v">¥173,364</span><span class="l">初诊44 · 成交率80% · 客单价¥4,686</span></div>
+          <div class="sum-r"><span class="l">美容皮肤</span><span class="v">¥110,461</span><span class="l">初诊56 · 成交率88% · 客单价¥2,166</span></div>
+          <div class="sum-r"><span class="l">整形外科</span><span class="v">¥27,708</span><span class="l">初诊8 · 成交率63% · 客单价¥4,618</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- === 转化漏斗 === -->
+  <div class="sec">
+    <div class="sec-title">转化漏斗</div>
+    <div class="sec-sub">三平台汇总 · 对话 → 成交</div>
+    <div class="card">
+      <div class="card-b">
+        <div class="fun-item">
+          <span class="l">对话</span>
+          <div class="b s1"><span class="n">303 次咨询</span><span class="r">100%</span></div>
+          <span class="rate"></span>
+        </div>
+        <div class="fun-item">
+          <span class="l">有效</span>
+          <div class="b s2" style="width:52%"><span class="n">158</span><span class="r">52%</span></div>
+          <span class="rate" style="color:#e86452">-48%</span>
+        </div>
+        <div class="fun-item">
+          <span class="l">留联</span>
+          <div class="b s3" style="width:45%"><span class="n">137</span><span class="r">87%</span></div>
+          <span class="rate" style="color:#D0B090">-13%</span>
+        </div>
+        <div class="fun-item">
+          <span class="l">初诊</span>
+          <div class="b s4" style="width:42%"><span class="n">127</span><span class="r">93%</span></div>
+          <span class="rate" style="color:#D0B090">-7%</span>
+        </div>
+        <div class="fun-item">
+          <span class="l">成交</span>
+          <div class="b s5" style="width:35%"><span class="n">106 笔</span><span class="r">83%</span></div>
+          <span class="rate" style="color:#52c41a">-17%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- === 各平台转化对比 === -->
+  <div class="sec">
+    <div class="sec-title">各平台转化对比</div>
+    <div class="card">
+      <div class="card-b">
+        <table class="tbl">
+          <tr><th>平台</th><th>对话</th><th>有效</th><th>留联</th><th>初诊</th><th>成交</th><th>对话→初诊</th><th>初诊→成交</th></tr>
+          <tr><td class="l">大众点评</td><td>274</td><td>141</td><td>128</td><td>108</td><td>89</td><td class="o">39%</td><td class="g">82%</td></tr>
+          <tr><td class="l">抖音电商</td><td>9</td><td>9</td><td>9</td><td>16</td><td>10</td><td>178%*</td><td class="o">63%</td></tr>
+          <tr><td class="l">高德</td><td>20</td><td>8</td><td>0</td><td>3</td><td>1</td><td class="r">15%</td><td class="r">33%</td></tr>
+          <tr style="font-weight:600;background:#FAF8F5"><td class="l">合计</td><td>303</td><td>158</td><td>137</td><td>127</td><td>100</td><td class="o">42%</td><td class="g">79%</td></tr>
+        </table>
+        <div style="font-size:9px;color:#C0B0A0;margin-top:6px">*抖音初诊>对话，含多方咨询交叉</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- === 咨询师排名 === -->
+  <div class="sec">
+    <div class="sec-title">咨询师业绩排名</div>
+    <div class="card">
+      <div class="card-b">
+        <table class="tbl">
+          <tr><th>#</th><th>咨询师</th><th>初诊</th><th>成交额</th><th>客单价</th><th>成交率</th></tr>
+          <tr><td style="font-weight:700">1</td><td class="l">高迪</td><td>18</td><td class="g">¥74,139</td><td>¥4,119</td><td><span style="color:#52c41a;font-weight:600">94.4%</span></td></tr>
+          <tr><td style="font-weight:700">2</td><td class="l">耿文昊</td><td>22</td><td>¥64,048</td><td>¥2,911</td><td><span style="color:#52c41a;font-weight:600">81.8%</span></td></tr>
+          <tr><td style="font-weight:700">3</td><td class="l">侯文丽</td><td>27</td><td>¥49,882</td><td>¥1,847</td><td><span style="color:#D0B090;font-weight:600">77.8%</span></td></tr>
+          <tr><td>4</td><td class="l">郭庆慈</td><td>18</td><td>¥52,284</td><td>¥2,905</td><td><span style="color:#52c41a;font-weight:600">83.3%</span></td></tr>
+          <tr><td>5</td><td class="l">王烁铖</td><td>7</td><td>¥31,406</td><td>¥4,487</td><td><span style="color:#e86452;font-weight:600">57.1%</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- === 每日趋势 === -->
+  <div class="sec">
+    <div class="sec-title">每日趋势</div>
+    <div class="card">
+      <div class="card-b">
+        <table class="tbl">
+          <tr><th>日期</th><th>初诊</th><th>成交额</th><th>占比</th></tr>
+          <tr><td>7/1</td><td>15</td><td>¥34,295</td><td>9.3%</td></tr>
+          <tr><td>7/2</td><td>26</td><td>¥90,191</td><td>24.4%</td></tr>
+          <tr><td>7/3</td><td>17</td><td>¥20,759</td><td>5.6%</td></tr>
+          <tr><td>7/4</td><td>37</td><td>¥117,699</td><td>31.8%</td></tr>
+          <tr><td>7/5</td><td>19</td><td>¥39,632</td><td>10.7%</td></tr>
+          <tr><td>7/6</td><td>10</td><td>¥63,358</td><td>17.1%</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <script>
-function switchTab(tabId, el) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
+function switchTab(id, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.nav-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('show');
   el.classList.add('active');
 }
 </script>
