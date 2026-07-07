@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电商数据分析看板 - 7月（截止6日）</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  /* Password Gate */
+  #password-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    z-index: 99999; display: flex; justify-content: center; align-items: center;
+    flex-direction: column; color: white;
+  }
+  #password-overlay h2 { font-size: 22px; margin-bottom: 8px; font-weight: 500; }
+  #password-overlay p { font-size: 13px; opacity: 0.6; margin-bottom: 24px; }
+  #password-overlay input {
+    padding: 12px 18px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+    background: rgba(255,255,255,0.08); color: white; font-size: 16px;
+    width: 220px; text-align: center; outline: none;
+    transition: border-color 0.3s;
+  }
+  #password-overlay input:focus { border-color: #667eea; }
+  #password-overlay .error { color: #ff6b6b; font-size: 12px; margin-top: 10px; display: none; }
+  #password-overlay button {
+    margin-top: 14px; padding: 10px 32px; border: none; border-radius: 8px;
+    background: linear-gradient(135deg, #667eea, #764ba2); color: white;
+    font-size: 14px; cursor: pointer; transition: opacity 0.3s;
+  }
+  #password-overlay button:hover { opacity: 0.85; }
+  .dashboard-content { display: none; }
+  .dashboard-content.show { display: block; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f0f2f5; color: #333; }
+  .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header .subtitle { font-size: 12px; opacity: 0.85; margin-top: 3px; }
+  .badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 11px; }
+
+  /* Nav Bar */
+  .nav-bar { background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+  .nav-inner { max-width: 1400px; margin: 0 auto; padding: 0 20px; display: flex; gap: 0; }
+  .nav-tab { padding: 14px 28px; font-size: 14px; font-weight: 500; color: #666; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.25s; user-select: none; white-space: nowrap; }
+  .nav-tab:hover { color: #667eea; background: #f8f9ff; }
+  .nav-tab.active { color: #667eea; border-bottom-color: #667eea; background: #f8f9ff; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+  .tab-panel { display: none; animation: fadeIn 0.35s ease; }
+  .tab-panel.active { display: block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+  .section-title { font-size: 15px; font-weight: 600; color: #555; margin-bottom: 14px; padding-left: 8px; border-left: 3px solid #667eea; }
+  .row { display: grid; gap: 18px; margin-bottom: 20px; }
+  .row-2 { grid-template-columns: 1fr 1fr; }
+  .card { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; transition: box-shadow 0.3s; }
+  .card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.09); }
+  .card-header { padding: 13px 16px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+  .card-header h3 { font-size: 13px; font-weight: 600; color: #444; }
+  .card-body { padding: 10px 16px; }
+  .chart-wrap { height: 260px; width: 100%; }
+
+  /* Data Editor */
+  .editor-section { border-top: 1px solid #f0f0f0; padding: 12px 16px; background: #fafbfc; }
+  .editor-toggle { cursor: pointer; user-select: none; font-size: 12px; color: #667eea; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .editor-toggle:hover { opacity: 0.75; }
+  .editor-toggle.open .arrow { transform: rotate(90deg); display: inline-block; transition: transform 0.2s; }
+  .editor-table { width: 100%; border-collapse: collapse; margin-top: 8px; display: none; font-size: 12px; }
+  .editor-table.show { display: table; }
+  .editor-table th { background: #eef1f6; padding: 6px 8px; text-align: left; font-weight: 600; color: #555; border: 1px solid #ddd; font-size: 12px; }
+  .editor-table td { border: 1px solid #e8e8e8; padding: 2px 0; }
+  .editor-table input { width: 100%; border: none; padding: 5px 8px; text-align: right; outline: none; font-size: 12px; color: #333; background: transparent; transition: background 0.2s; }
+  .editor-table input:focus { background: #e8f0fe; }
+  .editor-table input:hover { background: #f5f5f5; }
+  .editor-table tr td:first-child input { text-align: left; font-weight: 500; color: #444; }
+  .btn-row { text-align: right; margin-top: 6px; }
+  .btn-sm { padding: 4px 12px; font-size: 11px; background: #52c41a; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background 0.2s; }
+  .btn-sm:hover { background: #45a815; }
+
+  @media (max-width: 900px) {
+    .row-2 { grid-template-columns: 1fr; }
+    .chart-wrap { height: 220px; }
+    .nav-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .nav-tab { padding: 12px 18px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Password Gate -->
+<div id="password-overlay">
+  <h2>🔒 数据分析看板</h2>
+  <p>请输入密码查看</p>
+  <input type="password" id="pwd-input" placeholder="输入密码" onkeydown="if(event.key==='Enter')checkPassword()">
+  <div class="error" id="pwd-error">密码错误，请重试</div>
+  <button onclick="checkPassword()">进入看板</button>
+</div>
+
+<div class="dashboard-content" id="dashboard-content">
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <h1>📊 电商数据分析看板</h1>
+    <div class="subtitle">2026年7月数据 · 截止7月6日 · 数据实时编辑</div>
+  </div>
+  <div class="badge">✏️ 可在线编辑</div>
+</div>
+
+<!-- Navigation Bar -->
+<div class="nav-bar">
+  <div class="nav-inner">
+    <div class="nav-tab active" onclick="switchTab('tab1', this)">平台可视化分析</div>
+    <div class="nav-tab" onclick="switchTab('tab2', this)">网电数据分析</div>
+    <div class="nav-tab" onclick="switchTab('tab3', this)">咨询转化分析</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ==================== TAB 1 ==================== -->
+  <div class="tab-panel active" id="tab1">
+    <div class="section-title">可视化分析</div>
+    <div class="row row-2">
+
+      <!-- C1 -->
+      <div class="card" id="card1">
+        <div class="card-header"><h3>各平台投入 vs 产出对比</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart1"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table1', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table1"><thead><tr><th>平台名称</th><th>投入金额（元）</th><th>业绩产出（元）</th></tr></thead><tbody id="tbody1"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart1')">刷新图表</button></div>
+        </div>
+      </div>
+
+      <!-- C2 -->
+      <div class="card" id="card2">
+        <div class="card-header"><h3>各平台转化漏斗（点击→初诊）</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart2"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table2', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table2"><thead><tr><th>平台名称</th><th>点击量</th><th>初诊人数</th></tr></thead><tbody id="tbody2"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart2')">刷新图表</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="row row-2">
+
+      <!-- C3 -->
+      <div class="card" id="card3">
+        <div class="card-header"><h3>项目类别业绩分布</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart3"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table3', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table3"><thead><tr><th>项目类别</th><th>业绩金额（元）</th></tr></thead><tbody id="tbody3"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart3')">刷新图表</button></div>
+        </div>
+      </div>
+
+      <!-- C4 -->
+      <div class="card" id="card4">
+        <div class="card-header"><h3>月度目标达成度雷达</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart4"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table4', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table4"><thead><tr><th>指标名称</th><th>目标值</th><th>实际完成</th><th>达成率%</th></tr></thead><tbody id="tbody4"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart4')">刷新图表</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 2 ==================== -->
+  <div class="tab-panel" id="tab2">
+    <div class="section-title">网电数据分析</div>
+    <div class="row row-2">
+
+      <!-- C5 -->
+      <div class="card" id="card5">
+        <div class="card-header"><h3>各渠道来电量 vs 成交量</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart5"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table5', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table5"><thead><tr><th>渠道来源</th><th>来电量</th><th>成交量</th></tr></thead><tbody id="tbody5"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart5')">刷新图表</button></div>
+        </div>
+      </div>
+
+      <!-- C6 -->
+      <div class="card" id="card6">
+        <div class="card-header"><h3>来电时段分布趋势</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart6"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table6', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table6"><thead><tr><th>时段</th><th>来电数量</th><th>有效接通</th></tr></thead><tbody id="tbody6"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart6')">刷新图表</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="row row-2">
+
+      <!-- C7 -->
+      <div class="card" id="card7">
+        <div class="card-header"><h3>各网电渠道投入产出比</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart7"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table7', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table7"><thead><tr><th>渠道</th><th>推广费用</th><th>成交金额</th></tr></thead><tbody id="tbody7"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart7')">刷新图表</button></div>
+        </div>
+      </div>
+
+      <!-- C8 -->
+      <div class="card" id="card8">
+        <div class="card-header"><h3>客源质量评估</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart8"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table8', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table8"><thead><tr><th>客源等级</th><th>人数</th><th>占比%</th></tr></thead><tbody id="tbody8"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart8')">刷新图表</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 3 ==================== -->
+  <div class="tab-panel" id="tab3">
+    <div class="section-title">咨询转化分析</div>
+    <div class="row row-2">
+
+      <!-- C9 -->
+      <div class="card" id="card9">
+        <div class="card-header"><h3>咨询转化全链路漏斗</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart9"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table9', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table9"><thead><tr><th>环节</th><th>人数</th></tr></thead><tbody id="tbody9"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart9')">刷新图表</button></div>
+        </div>
+      </div>
+
+      <!-- C10 -->
+      <div class="card" id="card10">
+        <div class="card-header"><h3>咨询师业绩排行榜</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart10"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table10', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table10"><thead><tr><th>咨询师姓名</th><th>咨询人数</th><th>成交金额（元）</th><th>转化率%</th></tr></thead><tbody id="tbody10"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart10')">刷新图表</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="row row-2">
+
+      <!-- C11 -->
+      <div class="card" id="card11">
+        <div class="card-header"><h3>各项目咨询热度对比</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart11"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table11', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table11"><thead><tr><th>项目</th><th>咨询量</th><th>成交数</th></tr></thead><tbody id="tbody11"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart11')">刷新图表</button></div>
+        </div>
+      </div>
+
+      <!-- C12 -->
+      <div class="card" id="card12">
+        <div class="card-header"><h3>近四周咨询转化趋势</h3></div>
+        <div class="card-body"><div class="chart-wrap" id="chart12"></div></div>
+        <div class="editor-section">
+          <div class="editor-toggle open" onclick="toggleEditor('table12', this)"><span class="arrow">▶</span> 编辑数据</div>
+          <table class="editor-table show" id="table12"><thead><tr><th>周次</th><th>咨询总数</th><th>到店数</th><th>成交数</th></tr></thead><tbody id="tbody12"></tbody></table>
+          <div class="btn-row"><button class="btn-sm" onclick="refreshChart('chart12')">刷新图表</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+<script>
+// ========== Password Gate ==========
+const CORRECT_PWD = "boshi2026";
+function checkPassword() {
+  const input = document.getElementById('pwd-input').value;
+  if (input === CORRECT_PWD) {
+    document.getElementById('password-overlay').style.display = 'none';
+    document.getElementById('dashboard-content').classList.add('show');
+    // Re-init charts after showing
+    setTimeout(() => {
+      Object.values(charts).forEach(c => c && c.resize());
+    }, 100);
+  } else {
+    document.getElementById('pwd-error').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+// ========== Tab Switch ==========
+function switchTab(tabId, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  el.classList.add('active');
+  setTimeout(() => {
+    Object.values(charts).forEach(c => c && c.resize());
+  }, 350);
+}
+
+function toggleEditor(tableId, el) {
+  const t = document.getElementById(tableId);
+  const showing = t.classList.toggle('show');
+  el.classList.toggle('open', showing);
+}
+
+// ========== 默认数据 ==========
+
+/* --- Tab 1: 平台可视化分析（截止7月6日实际数据）--- */
+const data1 = [
+  { name: '大众点评', invest: 81884, revenue: 311533 },
+  { name: '抖音电商', invest: 21679, revenue: 54401 },
+  { name: '高德', invest: 1671, revenue: 3917 },
+];
+const data2 = [
+  { platform: '大众点评', clicks: 13274, consults: 108 },
+  { platform: '抖音电商', clicks: 1822, consults: 16 },
+  { platform: '高德', clicks: 1354, consults: 3 },
+];
+const data3 = [
+  { category: '美容皮肤', amount: 110461 },
+  { category: '注射微整', amount: 173364 },
+  { category: '整形外科', amount: 27708 },
+];
+const data4 = [
+  { indicator: '总业绩(万)', target: 190, actual: 36.99 },
+  { indicator: '初诊人数', target: 660, actual: 127 },
+  { indicator: '转化率%', target: 85, actual: 77 },
+  { indicator: '客单价(元)', target: 3500, actual: 2912 },
+  { indicator: '投产比', target: 3.5, actual: 3.4 },
+  { indicator: '到诊率%', target: 42, actual: 37 },
+];
+
+/* --- Tab 2: 网电数据分析（截止7月6日实际数据）--- */
+const data5 = [
+  { channel: '大众点评电商', calls: 274, deals: 109 },
+  { channel: '大众门店推广', calls: 55, deals: 0 },
+  { channel: '抖音电商', calls: 9, deals: 12 },
+  { channel: '高德地图', calls: 20, deals: 1 },
+  { channel: '其他渠道', calls: 0, deals: 0 },
+];
+const data6 = [
+  { period: '8:00-10:00', count: 28, valid: 18 },
+  { period: '10:00-12:00', count: 72, valid: 52 },
+  { period: '12:00-14:00', count: 48, valid: 32 },
+  { period: '14:00-17:00', count: 95, valid: 70 },
+  { period: '17:00-19:00', count: 62, valid: 45 },
+  { period: '19:00-21:00', count: 51, valid: 36 },
+];
+const data7 = [
+  { name: '大众点评投放', cost: 81884, revenue: 311533 },
+  { name: '高德推广', cost: 1671, revenue: 3917 },
+  { name: '抖音电商投放', cost: 21679, revenue: 54401 },
+];
+const data8 = [
+  { level: 'A类（高意向）', count: 58, pct: 42.4 },
+  { level: 'B类（中意向）', count: 45, pct: 32.8 },
+  { level: 'C类（低意向）', count: 22, pct: 16.1 },
+  { level: 'D类（无意向）', count: 12, pct: 8.7 },
+];
+
+/* --- Tab 3: 咨询转化分析（截止7月6日实际数据）--- */
+const data9 = [
+  { stage: '对话咨询', value: 303 },
+  { stage: '有效沟通', value: 158 },
+  { stage: '留联成功', value: 137 },
+  { stage: '到店初诊', value: 127 },
+  { stage: '成交付款', value: 106 },
+];
+const data10 = [
+  { name: '高迪', consults: 18, revenue: 74139, rate: 94.4 },
+  { name: '耿文昊', consults: 22, revenue: 64048, rate: 81.8 },
+  { name: '侯文丽', consults: 27, revenue: 49882, rate: 77.8 },
+  { name: '郭庆慈', consults: 18, revenue: 52284, rate: 83.3 },
+  { name: '王烁铖', consults: 7, revenue: 31406, rate: 57.1 },
+];
+const data11 = [
+  { item: '美容皮肤', consults: 59, deals: 52 },
+  { item: '注射微整', consults: 49, deals: 40 },
+  { item: '整形外科', consults: 15, deals: 7 },
+];
+const data12 = [
+  { week: '7月1-2日', total: 48, visit: 22, deal: 18 },
+  { week: '7月3-4日', total: 56, visit: 26, deal: 22 },
+  { week: '7月5-6日', total: 52, visit: 24, deal: 20 },
+  { week: '7月目标(整月)', total: 660, visit: 280, deal: 220 },
+];
+
+// ========== 初始化图表实例 ==========
+const charts = {};
+function initCharts() {
+  const ids = ['chart1','chart2','chart3','chart4','chart5','chart6','chart7','chart8','chart9','chart10','chart11','chart12'];
+  ids.forEach(id => { const el = document.getElementById(id); if(el) charts[id] = echarts.init(el); });
+}
+
+// ========== 表格渲染 ==========
+function renderTable1() { const tb=document.getElementById('tbody1'); tb.innerHTML=data1.map((d,i)=>`<tr><td><input type="text" value="${d.name}" onchange="data1[${i}].name=this.value"></td><td><input type="number" value="${d.invest}" onchange="data1[${i}].invest=+this.value"></td><td><input type="number" value="${d.revenue}" onchange="data1[${i}].revenue=+this.value"></td></tr>`).join(''); }
+function renderTable2() { const tb=document.getElementById('tbody2'); tb.innerHTML=data2.map((d,i)=>`<tr><td><input type="text" value="${d.platform}" onchange="data2[${i}].platform=this.value"></td><td><input type="number" value="${d.clicks}" onchange="data2[${i}].clicks=+this.value"></td><td><input type="number" value="${d.consults}" onchange="data2[${i}].consults=+this.value"></td></tr>`).join(''); }
+function renderTable3() { const tb=document.getElementById('tbody3'); tb.innerHTML=data3.map((d,i)=>`<tr><td><input type="text" value="${d.category}" onchange="data3[${i}].category=this.value"></td><td><input type="number" value="${d.amount}" onchange="data3[${i}].amount=+this.value"></td></tr>`).join(''); }
+function renderTable4() { const tb=document.getElementById('tbody4'); tb.innerHTML=data4.map((d,i)=>`<tr><td><input type="text" value="${d.indicator}" onchange="data4[${i}].indicator=this.value"></td><td><input type="number" value="${d.target}" onchange="data4[${i}].target=+this.value"></td><td><input type="number" value="${d.actual}" onchange="data4[${i}].actual=+this.value"></td><td><input type="number" value="${(d.actual/d.target*100).toFixed(1)}" readonly style="color:#999;background:#eee;"></td></tr>`).join(''); }
+
+function renderTable5() { const tb=document.getElementById('tbody5'); tb.innerHTML=data5.map((d,i)=>`<tr><td><input type="text" value="${d.channel}" onchange="data5[${i}].channel=this.value"></td><td><input type="number" value="${d.calls}" onchange="data5[${i}].calls=+this.value"></td><td><input type="number" value="${d.deals}" onchange="data5[${i}].deals=+this.value"></td></tr>`).join(''); }
+function renderTable6() { const tb=document.getElementById('tbody6'); tb.innerHTML=data6.map((d,i)=>`<tr><td><input type="text" value="${d.period}" onchange="data6[${i}].period=this.value"></td><td><input type="number" value="${d.count}" onchange="data6[${i}].count=+this.value"></td><td><input type="number" value="${d.valid}" onchange="data6[${i}].valid=+this.value"></td></tr>`).join(''); }
+function renderTable7() { const tb=document.getElementById('tbody7'); tb.innerHTML=data7.map((d,i)=>`<tr><td><input type="text" value="${d.name}" onchange="data7[${i}].name=this.value"></td><td><input type="number" value="${d.cost}" onchange="data7[${i}].cost=+this.value"></td><td><input type="number" value="${d.revenue}" onchange="data7[${i}].revenue=+this.value"></td></tr>`).join(''); }
+function renderTable8() { const tb=document.getElementById('tbody8'); tb.innerHTML=data8.map((d,i)=>`<tr><td><input type="text" value="${d.level}" onchange="data8[${i}].level=this.value"></td><td><input type="number" value="${d.count}" onchange="data8[${i}].count=+this.value"></td><td><input type="number" value="${d.pct}" onchange="data8[${i}].pct=+this.value"></td></tr>`).join(''); }
+
+function renderTable9() { const tb=document.getElementById('tbody9'); tb.innerHTML=data9.map((d,i)=>`<tr><td><input type="text" value="${d.stage}" onchange="data9[${i}].stage=this.value"></td><td><input type="number" value="${d.value}" onchange="data9[${i}].value=+this.value"></td></tr>`).join(''); }
+function renderTable10(){ const tb=document.getElementById('tbody10');tb.innerHTML=data10.map((d,i)=>`<tr><td><input type="text" value="${d.name}" onchange="data10[${i}].name=this.value"></td><td><input type="number" value="${d.consults}" onchange="data10[${i}].consults=+this.value"></td><td><input type="number" value="${d.revenue}" onchange="data10[${i}].revenue=+this.value"></td><td><input type="number" value="${d.rate}" onchange="data10[${i}].rate=+this.value"></td></tr>`).join('');}
+function renderTable11(){ const tb=document.getElementById('tbody11');tb.innerHTML=data11.map((d,i)=>`<tr><td><input type="text" value="${d.item}" onchange="data11[${i}].item=this.value"></td><td><input type="number" value="${d.consults}" onchange="data11[${i}].consults=+this.value"></td><td><input type="number" value="${d.deals}" onchange="data11[${i}].deals=+this.value"></td></tr>`).join('');}
+function renderTable12(){ const tb=document.getElementById('tbody12');tb.innerHTML=data12.map((d,i)=>`<tr><td><input type="text" value="${d.week}" onchange="data12[${i}].week=this.value"></td><td><input type="number" value="${d.total}" onchange="data12[${i}].total=+this.value"></td><td><input type="number" value="${d.visit}" onchange="data12[${i}].visit=+this.value"></td><td><input type="number" value="${d.deal}" onchange="data12[${i}].deal=+this.value"></td></tr>`).join('');}
+
+// ========== 图表渲染 ==========
+function refreshChart(cid) {
+
+  // ---- chart1: 投入vs产出 柱状图 ----
+  if(cid==='chart1') charts.chart1.setOption({
+    tooltip:{trigger:'axis'}, legend:{bottom:0,data:['投入金额','业绩产出']},
+    xAxis:{type:'category',data:data1.map(d=>d.name)}, yAxis:{type:'value',axisLabel:{formatter:v=>v>=10000?(v/10000)+'万':v}},
+    series:[{name:'投入金额',type:'bar',data:data1.map(d=>d.invest),itemStyle:{color:'#5B8FF9'},barWidth:'30%'},{name:'业绩产出',type:'bar',data:data1.map(d=>d.revenue),itemStyle:{color:'#61DDAA'},barWidth:'30%'}]
+  });
+
+  // ---- chart2: 转化漏斗 ----
+  if(cid==='chart2'){ let fd=[]; data2.forEach(d=>{fd.push({value:d.clicks,name:d.platform+'-点击'});fd.push({value:d.consults,name:d.platform+'-初诊'});});
+    charts.chart2.setOption({
+      tooltip:{trigger:'item',formatter:'{b}: {c}'}, legend:{orient:'vertical',left:'left',top:'middle',textStyle:{fontSize:12}},
+      series:[{type:'funnel',left:'35%',top:30,bottom:30,width:'60%',sort:'descending',gap:3,label:{show:true,fontSize:12},data:fd,
+        itemStyle:{color:p=>['#5B8FF9','#5AD8A6','#F6BD16','#E86452','#6DC8EC','#9270CA'][p.dataIndex%6]}}]
+    });}
+
+  // ---- chart3: 项目分布 饼图 ----
+  if(cid==='chart3') charts.chart3.setOption({
+    tooltip:{trigger:'item',formatter:'{b}: ¥{c} ({d}%)'}, legend:{bottom:0,type:'scroll'},
+    series:[{type:'pie',radius:['40%','65%'],center:['50%','48%'],avoidLabelOverlap:true,
+      itemStyle:{borderRadius:6,borderColor:'#fff',borderWidth:2},
+      label:{fontSize:12,formatter:'{b}\\n{d}%'},
+      data:data3.map(d=>({name:d.category,value:d.amount})),
+      emphasis:{itemStyle:{shadowBlur:10,shadowOffsetX:0,shadowColor:'rgba(0,0,0,0.2)'}}}]
+  });
+
+  // ---- chart4: 目标雷达 ----
+  if(cid==='chart4') charts.chart4.setOption({
+    tooltip:{},
+    radar:{indicator:data4.map(d=>({name:d.indicator,max:Math.max(d.target*1.2,d.actual*1.2)})),shape:'polygon',splitNumber:4,axisName:{color:'#666',fontSize:12},splitArea:{areaStyle:{color:['#f5f5f5','#fff']}}},
+    series:[{type:'radar',data:[
+      {value:data4.map(d=>d.target),name:'目标值',lineStyle:{type:'dashed'},itemStyle:{color:'#999'},areaStyle:{opacity:0.08}},
+      {value:data4.map(d=>d.actual),name:'实际完成',lineStyle:{color:'#667eea'},itemStyle:{color:'#667eea'},areaStyle:{color:'rgba(102,126,234,0.2)'}}]}
+  });
+
+  // ---- chart5: 渠道来电vs成交 ----
+  if(cid==='chart5') charts.chart5.setOption({
+    tooltip:{trigger:'axis'}, legend:{bottom:0,data:['来电量','成交量']},
+    xAxis:{type:'category',data:data5.map(d=>d.channel)},
+    yAxis:[{type:'position'},{type:'value',max:function(v){return Math.ceil(v.max*1.2)}}],
+    series:[{name:'来电量',type:'bar',data:data5.map(d=>d.calls),itemStyle:{color:'#69C0FF'},barWidth:'30%'},{name:'成交量',type:'bar',data:data5.map(d=>d.deals),itemStyle:{color:'#FFA940'},barWidth:'30%'}]
+  });
+
+  // ---- chart6: 时段分布 折线+柱状 ----
+  if(cid==='chart6') charts.chart6.setOption({
+    tooltip:{trigger:'axis'}, legend:{bottom:0,data:['来电数量','有效接通']},
+    xAxis:{type:'category',data:data6.map(d=>d.period),boundaryGap:false},
+    yAxis:{type:'value'},
+    series:[{name:'来电数量',type:'line',data:data6.map(d=>d.count),smooth:true,itemStyle:{color:'#667eea'},areaStyle:{color:'rgba(102,126,234,0.15)'}},{name:'有效接通',type:'bar',data:data6.map(d=>d.valid),itemStyle:{color:'#95DE64'},barWidth:'50%'}]
+  });
+
+  // ---- chart7: 渠道ROI 散点 ----
+  if(cid==='chart7') charts.chart7.setOption({
+    tooltip:{trigger:'axis',formatter:function(p){let d=p[0];return d.seriesName+'<br/>推广费: ¥'+d.data[0]+'<br/>成交: ¥'+d.data[1];}}, legend:{bottom:0},
+    xAxis:{type:'value',name:'推广费用（元）',min:0}, yAxis:{type:'value',name:'成交金额（元）',min:0},
+    series:[{
+      type:'scatter',symbolSize:function(d){return Math.sqrt(d[1])/20+15}, data:data7.map(d=>[d.cost,d.revenue]),
+      label:{show:true,formatter:function(p){return data7[p.dataIndex?0:0].name||''},position:'top',fontSize:11,color:'#666'},
+      itemStyle:{color:function(p){return['#667eea','#F6BD16','#5AD8A6','#E86452'][p.dataIndex%4]},emphasis:{itemStyle:{shadowBlur:10}}}
+    }]
+  });
+
+  // ---- chart8: 客源质量 饼图 ----
+  if(cid==='chart8') charts.chart8.setOption({
+    tooltip:{trigger:'item',formatter:'{b}: {c}人 ({d}%)'},
+    series:[{type:'pie',radius:['38%','65%'],center:['50%','50%'],roseType:'radius',
+      itemStyle:{borderRadius:5,borderColor:'#fff',borderWidth:2},
+      label:{fontSize:12,formatter:'{b}\\n{c}人'},
+      data:data8.map(d=>({name:d.level,value:d.count}))}]
+  });
+
+  // ---- chart9: 咨询漏斗 ----
+  if(cid==='chart9') charts.chart9.setOption({
+    tooltip:{trigger:'item',formatter:'{b}: {c}人'},
+    legend:{bottom:0,textStyle:{fontSize:12}},
+    series:[{type:'funnel',left:'15%',top:20,bottom:30,width:'70%',sort:'descending',gap:4,
+      label:{show:true,fontSize:13,fontWeight:600},labelLine:{show:true,length:15,lineStyle:{color:'#999'}},
+      data:data9.map(d=>({value:d.value,name:d.stage})),
+      itemStyle:{color:p=>['#667eea','#5B8FF9','#61DDAA','#F6BD16','#E86452'][p.dataIndex%5]}}]
+  });
+
+  // ---- chart10: 咨询师排行 横向柱状 ----
+  if(cid==='chart10'){
+    let sorted=[...data10].sort((a,b)=>b.revenue-a.revenue);
+    charts.chart10.setOption({
+      tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, legend:{bottom:0,data:['咨询人数','成交金额']},
+      grid:{left:'3%',right:'12%',bottom:'8%',top:'4%',containLabel:true},
+      xAxis:{type:'value'}, yAxis:{type:'category',data:sorted.map(d=>d.name).reverse(),axisTick:{show:false}},
+      series:[
+        {name:'咨询人数',type:'bar',data:sorted.map(d=>d.consults).reverse(),itemStyle:{color:'#95DE64'},barWidth:'35%'},
+        {name:'成交金额',type:'bar',data:sorted.map(d=>d.revenue).reverse(),itemStyle:{color:'#69C0FF'},barWidth:'35%'}
+      ]
+    });
+  }
+
+  // ---- chart11: 项目热度 柱状 ----
+  if(cid==='chart11') charts.chart11.setOption({
+    tooltip:{trigger:'axis'}, legend:{bottom:0,data:['咨询量','成交数']},
+    xAxis:{type:'category',data:data11.map(d=>d.item)},
+    yAxis:{type:'value'},
+    series:[{name:'咨询量',type:'bar',data:data11.map(d=>d.consults),itemStyle:{color:'#667eea'},barWidth:'30%'},{name:'成交数',type:'bar',data:data11.map(d=>d.deals),itemStyle:{color:'#FF85C0'},barWidth:'30%'}]
+  });
+
+  // ---- chart12: 周趋势 折线 ----
+  if(cid==='chart12') charts.chart12.setOption({
+    tooltip:{trigger:'axis'}, legend:{bottom:0,data:['咨询总数','到店数','成交数']},
+    xAxis:{type:'category',data:data12.map(d=>d.week),boundaryGap:false},
+    yAxis:{type:'value'},
+    series:[
+      {name:'咨询总数',type:'line',data:data12.map(d=>d.total),smooth:true,itemStyle:{color:'#667eea'},areaStyle:{color:'rgba(102,126,234,0.12)'}},
+      {name:'到店数',type:'line',data:data12.map(d=>d.visit),smooth:true,itemStyle:{color:'#5AD8A6'}},
+      {name:'成交数',type:'line',data:data12.map(d=>d.deal),smooth:true,itemStyle:{color:'#F6BD16'}}
+    ]
+  });
+}
+
+// ========== 自动刷新 ==========
+let timer=null;
+document.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>{for(let i=1;i<=12;i++)refreshChart('chart'+i);},800);});
+
+// ========== 窗口自适应 ==========
+window.addEventListener('resize',()=>Object.values(charts).forEach(c=>c&&c.resize()));
+
+// ========== 启动 ==========
+initCharts();
+renderTable1();renderTable2();renderTable3();renderTable4();
+renderTable5();renderTable6();renderTable7();renderTable8();
+renderTable9();renderTable10();renderTable11();renderTable12();
+for(let i=1;i<=12;i++)refreshChart('chart'+i);
+
+</script>
+</body>
+</html>
